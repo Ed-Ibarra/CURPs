@@ -24,6 +24,7 @@ if __name__ == '__main__':
 
         downloaded_users = []
         download_failed = []
+        driver = functions.setup_chrome()
         data = functions.get_excel_data("people.xlsx")
 
         # Start iterating on the data obtained from the Excel file: entry = row
@@ -51,8 +52,6 @@ if __name__ == '__main__':
                                 sex=entry[4],
                                 state=entry[5])
 
-                # Get access to the form on the web
-                driver = functions.setup_chrome()
                 driver.get("https://www.gob.mx/curp/")
 
                 datos = WebDriverWait(driver, 10).until(
