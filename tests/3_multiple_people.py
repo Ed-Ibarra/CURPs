@@ -8,10 +8,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-
-import openpyxl
-
-
 if __name__ == '__main__':
     # Logs & Pytest reports
     logging.basicConfig(filename='results/logs/3_multiple_people.log',
@@ -28,15 +24,16 @@ if __name__ == '__main__':
 
         downloaded_users = []
         download_failed = []
-
-        driver = functions.setup_chrome()
         data = functions.get_excel_data("people.xlsx")
-        download_directory = "CURPS"
 
+        # Start iterating on the data obtained from the Excel file: entry = row
         for i, entry in enumerate(data, start=2):
+            # If there is a NONE value in any field in the row, create a
+            # warning in the logs to inform where the error is and append the
+            # user's full name. If there is a NONE value, fill it with "(empty)".
             if None in entry:
                 logging.warning(
-                    f"There is at least one missing value in row number {i} of"
+                    f"There is at least one missing value in row number {i} of "
                     f"the Excel file. So, the CURP couldn't be downloaded."
                     )
                 download_failed.append(
@@ -46,6 +43,7 @@ if __name__ == '__main__':
                     )
                 
             else:
+                # Create a new object using the row's information
                 person = Person(name=entry[0],
                                 first_lastname=entry[1],
                                 second_lastname=entry[2],
@@ -53,6 +51,8 @@ if __name__ == '__main__':
                                 sex=entry[4],
                                 state=entry[5])
 
+                # Get access to the form on the web
+                driver = functions.setup_chrome()
                 driver.get("https://www.gob.mx/curp/")
 
                 datos = WebDriverWait(driver, 10).until(
@@ -61,10 +61,19 @@ if __name__ == '__main__':
 
                 datos.click()
 
+                # Calls a function that sends the necessary information to fill
+                # out the form that provides access to the button to download
+                # the CURP
                 functions.send_data(driver, person)
                 
                 full_name = f"{person.name} {person.first_lastname} {person.second_lastname}"
-
+                
+                # Calls a function that waits a certain amount of time for the
+                # document to download, as the case may be, add a log with the
+                # appropriate information and save the user's name to notify
+                # later whether or not it was possible to download their CURP
+                download_directory = "CURPS"
+                
                 if functions.wait_for_download(download_directory, len(os.listdir(download_directory))):
                     downloaded_users.append(full_name)
                     logging.info(
@@ -82,6 +91,8 @@ if __name__ == '__main__':
         elif len(data) == len(download_failed):
             log = f"\nNo CURP could be downloaded"
         else:
+            # If some CURPs were downloaded, must specify which ones are and
+            # which are not
             log = f"\nCURPs successfully downloaded: "
             log += f"{len(downloaded_users)}/{len(data)}\n"
             for i, user in enumerate(downloaded_users, start=1):

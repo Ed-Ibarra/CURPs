@@ -22,9 +22,12 @@ if __name__ == '__main__':
     try:
         logging.info("Starting '1_single_person_accurate_information' test")
 
+        # Creates a new object of type "person" and calls a function for the
+        # user to manually enter the necessary data to download their CURP
         person = Person()
         person.get_data()
 
+        # Get access to the form on the web
         driver = functions.setup_chrome()
         driver.get("https://www.gob.mx/curp/")
 
@@ -34,6 +37,8 @@ if __name__ == '__main__':
 
         datos.click()
 
+        # Calls a function that sends the necessary information to fill out
+        # the form that provides access to the button to download the CURP
         functions.send_data(driver, person)
 
         driver.quit()
